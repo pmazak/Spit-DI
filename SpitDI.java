@@ -10,24 +10,24 @@ import javax.annotation.Resource;
 public class SpitDI {
 	private Map<String, Object> container = new HashMap<>();
 
-	public SpitDI bindByName(Class clas, String name, Object instance) {
-		container.put(toKey(clas, name), instance);
+	public SpitDI bindByName(Class clas, String name, Object instance, boolean... allowBindingOverwrite) {
+		container.put(toKey(allowBindingOverwrite, clas, name), instance);
 		return this;
 	}
 
-	public SpitDI bindByType(Class clas, Object instance) {
-		container.put(toKey(clas), instance);
+	public SpitDI bindByType(Class clas, Object instance, boolean... allowBindingOverwrite) {
+		container.put(toKey(allowBindingOverwrite, clas), instance);
 		return this;
 	}
 
-	public SpitDI bindStatic(Class clas) {
-		container.put(toKey(clas), null);
+	public SpitDI bindStatic(Class clas, boolean... allowBindingOverwrite) {
+		container.put(toKey(allowBindingOverwrite, clas), null);
 		return this;
 	}
 
-	public SpitDI inject(Object instance) {
-		if (instance != null)
-			container.put(toKey(instance.getClass()), instance);
+	public SpitDI inject(Object... instance) {
+		if (instance.length > 0 && instance[0] != null)
+			bindByType(instance[0].getClass(), instance[0]);
 		Class targetClass = null;
 		String sourceKey = null;
 		try {
@@ -107,9 +107,9 @@ public class SpitDI {
 		return true;
 	}
 
-	private String toKey(Class clas, String... name) {
+	private String toKey(boolean[] allowBindingOverwrite, Class clas, String... name) {
 		String key = clas.getName() + "|" + (name.length == 0 ? "" : name[0]);
-		if (container.containsKey(key))
+		if ((allowBindingOverwrite.length == 0 || !allowBindingOverwrite[0]) && container.containsKey(key))
 			throw new IllegalArgumentException("Duplicate binding for '" + key + "'.");
 		return key;
 	}
