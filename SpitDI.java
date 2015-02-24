@@ -1,8 +1,11 @@
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -39,16 +42,36 @@ public class SpitDI {
 					if (sourceKey == target.getKey())
 						continue;
 					Class sourceClass = getTypeBinding(source);
+					String sourceName = getNameBinding(source);
 					Object sourceInstance = source.getValue();
-					String name = getNameBinding(source);
-					if (!injectByName(targetInstance, targetClass, name, sourceClass, sourceInstance))
+					if (sourceName.length() == 0)
 						injectByType(targetClass, targetInstance, sourceClass, sourceInstance);
+					else
+						injectByName(targetInstance, targetClass, sourceName, sourceClass, sourceInstance);
 				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("Error binding '" + sourceKey + "' to '" + targetClass + "'.", e);
 		}
+		container.clear();
 		return this;
+	}
+
+	private Set<Field> getAllFields(Class<?> type) {
+		Set<Field> fields = new HashSet<Field>();
+		for (Class<?> c = type; c != null; c = c.getSuperclass())
+			fields.addAll(Arrays.asList(c.getDeclaredFields()));
+		return fields;
+	}
+
+	private Field getFieldByName(Class<?> clas, String name) {
+		for (Class<?> c = clas; c != null; c = c.getSuperclass()) {
+			try {
+				return c.getDeclaredField(name);
+			} catch (NoSuchFieldException | SecurityException ignore) {
+			}
+		}
+		return null;
 	}
 
 	private String getNameBinding(Entry<String, Object> entry) {
@@ -66,18 +89,10 @@ public class SpitDI {
 		}
 	}
 
-	private boolean injectByName(Object targetInstance, Class targetClass, String targetFieldName, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
-		if (targetFieldName.length() == 0)
+	private boolean injectByName(Object targetInstance, Class targetClass, String sourceName, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
+		if (sourceName.length() == 0)
 			return false;
-		Field targetField = null;
-		try {
-			targetField = targetClass.getField(targetFieldName);
-		} catch (NoSuchFieldException ignoreInstanceCheck) {
-			try {
-				targetField = targetClass.getDeclaredField(targetFieldName);
-			} catch (NoSuchFieldException | SecurityException ignoreStaticCheck) {
-			}
-		}
+		Field targetField = getFieldByName(targetClass, sourceName);
 		if (targetField == null)
 			return false;
 		else
@@ -86,18 +101,15 @@ public class SpitDI {
 
 	private boolean injectByType(Class targetClass, Object targetInstance, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
 		boolean atLeastOneSet = false;
-		for (Field targetField : targetClass.getFields())
-			atLeastOneSet |= injectResource(targetInstance, targetField, sourceClass, sourceInstance);
-		for (Field targetField : targetClass.getDeclaredFields())
+		for (Field targetField : getAllFields(targetClass))
 			atLeastOneSet |= injectResource(targetInstance, targetField, sourceClass, sourceInstance);
 		return atLeastOneSet;
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean injectResource(Object targetInstance, Field targetField, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
 		if (targetField.getAnnotation(Resource.class) == null)
 			return false;
-		if (!sourceClass.isAssignableFrom(targetField.getType()))
+		if (!targetField.getType().isAssignableFrom(sourceClass))
 			return false;
 		targetField.setAccessible(true);
 		if (Modifier.isStatic(targetField.getModifiers()))
