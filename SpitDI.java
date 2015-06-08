@@ -39,7 +39,7 @@ public class SpitDI {
 				targetClass = getTypeBinding(target);
 				for (Entry<String, Object> source : container.entrySet()) {
 					sourceKey = source.getKey();
-					if (sourceKey == target.getKey())
+					if (target.getKey().equals(sourceKey))
 						continue;
 					Class sourceClass = getTypeBinding(source);
 					String sourceName = getNameBinding(source);
@@ -58,7 +58,7 @@ public class SpitDI {
 	}
 
 	private Set<Field> getAllFields(Class<?> type) {
-		Set<Field> fields = new HashSet<Field>();
+		Set<Field> fields = new HashSet<>();
 		for (Class<?> c = type; c != null; c = c.getSuperclass())
 			fields.addAll(Arrays.asList(c.getDeclaredFields()));
 		return fields;
