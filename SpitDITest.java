@@ -37,6 +37,24 @@ public class SpitDITest {
 			.bindByName(String.class, "message", "Universe")
 			.inject(hello);
 	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void Does_not_allow_byType_binding_to_overwrite_byName_binding() throws Exception {
+		Hello hello = new Hello();
+		SpitDI spit = new SpitDI();
+		spit.bindByName(String.class, "message", "World")
+			.bindByType(String.class, "Universe")
+			.inject(hello);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void Does_not_allow_byName_binding_if_same_byType_binding_was_already_used() throws Exception {
+		Hello hello = new Hello();
+		SpitDI spit = new SpitDI();
+		spit.bindByType(String.class, "World")
+			.bindByName(String.class, "message", "Universe")
+			.inject(hello);
+	}
 
 	@Test
 	public void Inject_by_name_and_type() throws Exception {

@@ -1,8 +1,8 @@
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -11,7 +11,7 @@ import javax.annotation.Resource;
 
 @SuppressWarnings("rawtypes")
 public class SpitDI {
-	private Map<String, Object> container = new HashMap<>();
+	private Map<String, Object> container = new LinkedHashMap<>();
 
 	public SpitDI bindByName(Class clas, String name, Object instance, boolean... allowBindingOverwrite) {
 		container.put(toKey(allowBindingOverwrite, clas, name), instance);
@@ -120,9 +120,25 @@ public class SpitDI {
 	}
 
 	private String toKey(boolean[] allowBindingOverwrite, Class clas, String... name) {
-		String key = clas.getName() + "|" + (name.length == 0 ? "" : name[0]);
-		if ((allowBindingOverwrite.length == 0 || !allowBindingOverwrite[0]) && container.containsKey(key))
-			throw new IllegalArgumentException("Duplicate binding for '" + key + "'.");
+		String className = clas.getName();
+		boolean bindingByType = (name.length == 0);
+		String key = className + "|" + (bindingByType ? "" : name[0]);
+		if (allowBindingOverwrite.length == 0 || !allowBindingOverwrite[0]) {
+			String byTypeKey = className + "|";
+			if (container.containsKey(key)) {
+				throw new IllegalArgumentException("Duplicate binding for '" + key + "'.");
+			}
+			else if (container.containsKey(byTypeKey)) {
+				throw new IllegalArgumentException("Binding byName '" + key + "', but there was already a binding byType '" + className + "'.");
+			}
+			else if (bindingByType) {
+				for (String existingKey : container.keySet()) {
+					String existingKeyType = existingKey.substring(0, existingKey.indexOf("|") + 1);
+					if (byTypeKey.equals(existingKeyType))
+						throw new IllegalArgumentException("Binding byType '" + key + "', but there was already a binding byName '" + existingKey + "'.");
+				}
+			}
+		}
 		return key;
 	}
 }
