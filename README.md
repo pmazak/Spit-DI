@@ -1,6 +1,6 @@
 # Spit-DI
 
-Spit is a lightweight dependency injection class for Java. It sets fields annotated with @Resource based on the singleton bindings in the container.
+Spit is a lightweight dependency injection class for Java. It sets fields annotated with @Resource based on the singleton bindings in the container. Read how to use this for [Dependency Injection on Hadoop](http://paulmazak.blogspot.com/2015/06/dependency-injection-on-hadoop.html).
 
 ## Usage
 
