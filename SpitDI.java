@@ -2,25 +2,20 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
+import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.annotation.Resource;
 
 @SuppressWarnings("rawtypes")
 public class SpitDI {
@@ -41,12 +36,20 @@ public class SpitDI {
 		return this;
 	}
 
-	public SpitDI inject(Object... instance) {
-		if (instance.length > 0 && instance[0] != null)
-			bindByType(instance[0].getClass(), instance[0]);
+	public SpitDI bindStaticScala(Class clas, Object instance, boolean... allowBindingOverwrite) {
+		container.put(toKey(allowBindingOverwrite, clas), instance);
+		return this;
+	}
+
+	public SpitDI inject(Object... instances) {
 		Class targetClass = null;
 		String sourceKey = null;
 		try {
+			if (instances.length > 0 && instances[0] != null) {
+				for (int i = 0; i < instances.length; i++) {
+					bindByType(instances[i].getClass(), instances[i]);
+				}
+			}
 			for (Entry<String, Object> target : container.entrySet()) {
 				Object targetInstance = target.getValue();
 				targetClass = getTypeBinding(target);
@@ -66,8 +69,14 @@ public class SpitDI {
 		} catch (Exception e) {
 			throw new RuntimeException("Error binding '" + sourceKey + "' to '" + targetClass + "'.", e);
 		}
-		container.clear();
+		finally {
+			clearBindings();
+		}
 		return this;
+	}
+
+	public void clearBindings() {
+		container.clear();
 	}
 
 	private Set<Field> getAllFields(Class<?> type) {
