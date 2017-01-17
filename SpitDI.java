@@ -36,10 +36,15 @@ public class SpitDI {
 		return this;
 	}
 
-	public SpitDI bindStaticScala(Class clas, Object instance, boolean... allowBindingOverwrite) {
-		container.put(toKey(allowBindingOverwrite, clas), instance);
-		return this;
-	}
+    public SpitDI bindStaticScala(Class clas, boolean... allowBindingOverwrite) {
+        try {
+            Class object = Class.forName(clas.getName() + "$");
+            container.put(toKey(allowBindingOverwrite, clas), object.getField("MODULE$").get(object));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+        return this;
+    }
 
 	public SpitDI inject(Object... instances) {
 		Class targetClass = null;
