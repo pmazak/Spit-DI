@@ -42,3 +42,10 @@ dependencies {
     implementation files("libs/spit-di.jar")
 }
 ```
+
+## Package
+
+```
+javac SpitDI.java -d .
+zip -r spit-di.jar com
+```
