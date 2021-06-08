@@ -31,3 +31,14 @@ class Main {
    }
 }
 ```
+
+## Install
+
+Download the jar (it has only one class in it) and add as a dependency.
+
+Gradle
+```
+dependencies {
+    implementation files("libs/spit-di.jar")
+}
+```

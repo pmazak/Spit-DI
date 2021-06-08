@@ -11,13 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
-import static org.junit.Assert.assertEquals;
 
+package com.pmazak.spit;
+
+import static org.junit.Assert.assertEquals;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 import javax.annotation.Resource;
-
 import org.junit.Test;
 
 public class SpitDITest {
