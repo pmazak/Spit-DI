@@ -24,8 +24,8 @@ class Main {
       Hello hello = new Hello();
       SpitDI spit = new SpitDI();
       spit.bindByName(String.class, "message", "World")
-      	  .bindByType(Integer.class, 4)
-      	  .inject(hello);
+            .bindByType(Integer.class, 4)
+            .inject(hello);
       System.out.println(hello.getMessage());
       System.out.println(hello.getNumber());
    }
