@@ -16,9 +16,12 @@ package com.pmazak.spit;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class SpitDI {
@@ -103,6 +106,16 @@ public class SpitDI {
         }
         return null;
     }
+    
+    private Set<Method> getSettersByName(Class<?> clas, String name) {
+        String setterName = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
+        for (Class<?> c = clas; c != null; c = c.getSuperclass()) {
+            Method[] possibleMethods = c.getDeclaredMethods();
+            return Arrays.stream(possibleMethods).filter(x -> x.getName().equals(setterName))
+                    .collect(Collectors.toSet());
+        }
+        return new HashSet<>();
+    }
 
     private String getNameBinding(Entry<String, Object> entry) {
         String[] keyParts = entry.getKey().split("\\|");
@@ -119,14 +132,17 @@ public class SpitDI {
         }
     }
 
-    private boolean injectByName(Object targetInstance, Class targetClass, String sourceName, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
+    private boolean injectByName(Object targetInstance, Class targetClass, String sourceName, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         if (sourceName.length() == 0)
             return false;
+        boolean atLeastOneSet = false;
         Field targetField = getFieldByName(targetClass, sourceName);
-        if (targetField == null)
-            return false;
-        else
-            return injectResource(targetInstance, targetField, sourceClass, sourceInstance);
+        if (targetField != null)
+            atLeastOneSet |= injectResource(targetInstance, targetField, sourceClass, sourceInstance);
+        Set<Method> targetSetters = getSettersByName(targetClass, sourceName);
+        for (Method targetSetter : targetSetters)
+            atLeastOneSet |= injectResource(targetInstance, targetSetter, sourceClass, sourceInstance);
+        return atLeastOneSet;
     }
 
     private boolean injectByType(Class targetClass, Object targetInstance, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException {
@@ -146,6 +162,19 @@ public class SpitDI {
             targetField.set(null, sourceInstance);
         else
             targetField.set(targetInstance, sourceInstance);
+        return true;
+    }
+    
+    private boolean injectResource(Object targetInstance, Method targetSetter, Class sourceClass, Object sourceInstance) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+        if (targetSetter.getAnnotation(Resource.class) == null)
+            return false;
+        if (targetSetter.getParameterTypes().length != 1 || !targetSetter.getParameterTypes()[0].isAssignableFrom(sourceClass))
+            return false;
+        targetSetter.setAccessible(true);
+        if (Modifier.isStatic(targetSetter.getModifiers()))
+            targetSetter.invoke(null, sourceInstance);
+        else
+            targetSetter.invoke(targetInstance, sourceInstance);
         return true;
     }
 
