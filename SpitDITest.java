@@ -21,8 +21,11 @@ import javax.annotation.Resource;
 import org.junit.Test;
 
 public class SpitDITest {
+    @Resource
+    static Long time;
+    
     @Test
-    public void Can_set_collection_interfaces() throws Exception {
+    public void Can_set_collection_interfaces() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(Set.class, "items", new LinkedHashSet<String>())
@@ -32,7 +35,7 @@ public class SpitDITest {
     }
 
     @Test
-    public void Configure_overwrite_for_duplicate_binding() throws Exception {
+    public void Inject_by_name_and_type() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(String.class, "message", "World")
@@ -43,7 +46,7 @@ public class SpitDITest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void Does_not_allow_duplicate_bindings() throws Exception {
+    public void Does_not_allow_duplicate_bindings() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(String.class, "message", "World")
@@ -52,7 +55,7 @@ public class SpitDITest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void Does_not_allow_byType_binding_to_overwrite_byName_binding() throws Exception {
+    public void Does_not_allow_byType_binding_to_overwrite_byName_binding() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(String.class, "message", "World")
@@ -61,7 +64,7 @@ public class SpitDITest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void Does_not_allow_byName_binding_if_same_byType_binding_was_already_used() throws Exception {
+    public void Does_not_allow_byName_binding_if_same_byType_binding_was_already_used() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByType(String.class, "World")
@@ -70,13 +73,22 @@ public class SpitDITest {
     }
 
     @Test
-    public void Inject_by_name_and_type() throws Exception {
+    public void Configure_overwrite_for_duplicate_binding() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(String.class, "message", "World")
             .bindByName(String.class, "message", "Universe", true)
             .inject(hello);
         assertEquals("Universe", hello.message);
+    }
+
+    @Test
+    public void Inject_static_resources() {
+        SpitDI spit = new SpitDI();
+        spit.bindByName(Long.class, "time", 987654321L)
+            .bindStatic(SpitDITest.class)
+            .inject();
+        assertEquals(987654321L, SpitDITest.time, .001);
     }
 
     class Hello {
