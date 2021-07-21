@@ -57,6 +57,6 @@ dependencies {
 ## Package
 
 ```
-javac SpitDI.java -d .
-zip -r spit-di.jar com
+javac src/com/pmazak/spit/SpitDI.java -d src
+cd src && zip -r ../spit-di.jar com && cd -
 ```

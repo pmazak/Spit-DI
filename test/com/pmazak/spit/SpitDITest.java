@@ -14,12 +14,12 @@
 
 package com.pmazak.spit;
 
-import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.annotation.Resource;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class SpitDITest {
     @Resource

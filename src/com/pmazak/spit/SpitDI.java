@@ -14,7 +14,6 @@
 
 package com.pmazak.spit;
 
-import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 
 @SuppressWarnings("rawtypes")
 public class SpitDI {
