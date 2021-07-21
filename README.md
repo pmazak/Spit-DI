@@ -2,7 +2,8 @@
 
 Spit is a lightweight dependency injection class for Java. Use it to:
  * Set fields annotated with @Resource
- * Call corresponding setField methods annotated with @Resource    
+ * Call corresponding setField methods annotated with @Resource
+ * Works on static fields and setter methods too!
 
 It's based on the singleton bindings in the container. Read how to use this for [Dependency Injection on Hadoop](http://paulmazak.blogspot.com/2015/06/dependency-injection-on-hadoop.html).
 
