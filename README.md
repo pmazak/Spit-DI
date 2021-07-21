@@ -1,10 +1,14 @@
 # Spit-DI
 
-Spit is a lightweight dependency injection class for Java. It sets fields annotated with @Resource based on the singleton bindings in the container. Read how to use this for [Dependency Injection on Hadoop](http://paulmazak.blogspot.com/2015/06/dependency-injection-on-hadoop.html).
+Spit is a lightweight dependency injection class for Java. Use it to:
+ * Set fields annotated with @Resource
+ * Call corresponding setField methods annotated with @Resource    
+
+It's based on the singleton bindings in the container. Read how to use this for [Dependency Injection on Hadoop](http://paulmazak.blogspot.com/2015/06/dependency-injection-on-hadoop.html).
 
 ## Usage
 
-In the class you wish to inject dependencies, annotate your fields with javax.annotation.Resource.
+In the class you wish to inject dependencies, annotate your fields or setters with javax.annotation.Resource.
 
 ```java
 class Hello {
@@ -12,7 +16,12 @@ class Hello {
    private String message;
    @Resource
    private Integer number;
-   // getters...
+   
+   private Set<String> items;
+   @Resource
+   private void setItems(Set<String> i) {
+       this.items = i;
+   }
 }
 ```
 
@@ -25,6 +34,7 @@ class Main {
       SpitDI spit = new SpitDI();
       spit.bindByName(String.class, "message", "World")
           .bindByType(Integer.class, 4)
+          .bindByName(Set.class, "items", new LinkedHashSet<String>())
           .inject(hello);
       System.out.println(hello.getMessage());
       System.out.println(hello.getNumber());
