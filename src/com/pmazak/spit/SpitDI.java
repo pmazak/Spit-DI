@@ -66,8 +66,6 @@ public class SpitDI {
                 targetClass = getTypeBinding(target);
                 for (Entry<String, Object> source : container.entrySet()) {
                     sourceKey = source.getKey();
-                    if (target.getKey().equals(sourceKey))
-                        continue;
                     Class sourceClass = getTypeBinding(source);
                     String sourceName = getNameBinding(source);
                     Object sourceInstance = source.getValue();

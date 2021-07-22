@@ -22,9 +22,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class SpitDITest {
-    @Resource
-    static Long time;
-    
     @Test
     public void Can_set_collection_interfaces() {
         Hello hello = new Hello();
@@ -87,9 +84,29 @@ public class SpitDITest {
     public void Inject_static_resources() {
         SpitDI spit = new SpitDI();
         spit.bindByName(Long.class, "time", 987654321L)
-            .bindStatic(SpitDITest.class)
+            .bindStatic(Hello.class)
             .inject();
-        assertEquals(987654321L, SpitDITest.time, .001);
+        assertEquals(987654321L, Hello.time, .001);
+    }
+
+    @Test
+    public void Instance_binding_sets_static_resources_as_well() {
+        SpitDI spit = new SpitDI();
+        Hello hello = new Hello();
+        spit.bindByName(Hello.class, "singleton", hello)
+            .inject();
+        assertEquals(hello, Hello.singleton);
+    }
+
+    @Test
+    public void Instance_binding_sets_instance_resources_as_well() {
+        SpitDI spit = new SpitDI();
+        Hello hello = new Hello();
+        spit.bindByName(Hello.class, "singleton", hello)
+            .bindByName(String.class, "message", "world")
+            .inject();
+        assertEquals(hello, Hello.singleton);
+        assertEquals("world", hello.message);
     }
 
     @Test
@@ -97,8 +114,8 @@ public class SpitDITest {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(File.class, "file1", new File("/tmp/1"))
-                .bindByName(File.class, "fileTwo", new File("/tmp/2"))
-                .inject(hello);
+            .bindByName(File.class, "fileTwo", new File("/tmp/2"))
+            .inject(hello);
         assertEquals("/tmp/1", hello.file1.getAbsolutePath());
         assertEquals("/tmp/2", hello.file2.getAbsolutePath());
     }
@@ -108,7 +125,7 @@ public class SpitDITest {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByName(String.class, "file1", "/tmp/1")
-                .inject(hello);
+            .inject(hello);
         assertEquals("/tmp/1", hello.file1.getAbsolutePath());
     }
 
@@ -117,12 +134,17 @@ public class SpitDITest {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
         spit.bindByType(File.class, new File("/tmp"))
-                .inject(hello);
+            .inject(hello);
         assertEquals(null, hello.file1);
         assertEquals(null, hello.file2);
     }
 
-    class Hello {
+    static class Hello {
+        @Resource
+        static Long time;
+        @Resource
+        static Hello singleton;
+        
         @Resource
         String message;
         @Resource
