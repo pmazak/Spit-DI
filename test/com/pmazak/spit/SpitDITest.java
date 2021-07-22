@@ -110,6 +110,26 @@ public class SpitDITest {
     }
 
     @Test
+    public void Static_binding_of_null_may_overwrite_instance_binding() {
+        SpitDI spit = new SpitDI();
+        Hello hello = new Hello();
+        spit.bindByName(Hello.class, "singleton", hello)
+            .bindStatic(Hello.class, true)
+            .inject();
+        assertEquals(null, Hello.singleton);
+    }
+
+    @Test
+    public void Instance_binding_may_overwrite_static_binding() {
+        SpitDI spit = new SpitDI();
+        Hello hello = new Hello();
+        spit.bindStatic(Hello.class)
+            .bindByName(Hello.class, "singleton", hello, true)
+            .inject();
+        assertEquals(hello, Hello.singleton);
+    }
+
+    @Test
     public void Inject_using_setter_of_name_and_type() {
         Hello hello = new Hello();
         SpitDI spit = new SpitDI();
